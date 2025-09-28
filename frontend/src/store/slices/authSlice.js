@@ -45,24 +45,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-export const registerAdmin = createAsyncThunk(
-  'auth/registerAdmin',
-  async ({ name, email, password }, { rejectWithValue }) => {
-    try {
-      const response = await authAPI.registerAdmin(name, email, password);
-      
-      // Store token immediately for admin (email is pre-verified)
-      await SecureStore.setItemAsync('token', response.data.token);
-      await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
-      
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Admin registration failed'
-      );
-    }
-  }
-);
 
 export const loadStoredAuth = createAsyncThunk(
   'auth/loadStoredAuth',
@@ -197,26 +179,6 @@ const authSlice = createSlice({
         state.error = action.payload.message;
         state.pendingVerificationEmail = null;
         state.requiresEmailVerification = false;
-      })
-      
-      // Register Admin
-      .addCase(registerAdmin.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerAdmin.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = true; // Admin is immediately authenticated
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.error = null;
-      })
-      .addCase(registerAdmin.rejected, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.error = action.payload;
       })
       
       // Load stored auth

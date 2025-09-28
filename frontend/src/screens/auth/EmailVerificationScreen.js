@@ -20,7 +20,7 @@ import { useTheme } from 'react-native-paper';
 import { authAPI } from '../../services/api';
 
 const EmailVerificationScreen = ({ route, navigation }) => {
-  const { email, fromLogin, fromRegistration } = route.params || {};
+  const { email, fromLogin, fromRegistration, userRole } = route.params || {};
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -29,13 +29,20 @@ const EmailVerificationScreen = ({ route, navigation }) => {
   
   const getTitle = () => {
     if (fromLogin) return 'Email Verification Required';
-    if (fromRegistration) return 'Check Your Email';
+    if (fromRegistration) {
+      return userRole === 'admin' ? 'Admin Email Verification' : 'Check Your Email';
+    }
     return 'Email Verification';
   };
   
   const getSubtitle = () => {
     if (fromLogin) return 'Your email address needs to be verified before you can log in.';
-    if (fromRegistration) return 'We\'ve sent a verification link to your email address.';
+    if (fromRegistration) {
+      if (userRole === 'admin') {
+        return 'Admin account created! Please verify your email address to access admin features.';
+      }
+      return 'We\'ve sent a verification link to your email address.';
+    }
     return 'Please verify your email address to continue.';
   };
 

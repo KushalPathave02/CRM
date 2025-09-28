@@ -21,7 +21,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 
-import { registerUser, registerAdmin, clearError } from '../../store/slices/authSlice';
+import { registerUser, clearError } from '../../store/slices/authSlice';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -55,20 +55,15 @@ const RegisterScreen = ({ navigation }) => {
     try {
       const { confirmPassword, role, ...registerData } = values;
       
-      if (role === 'admin') {
-        // Use admin registration (bypasses email verification)
-        await dispatch(registerAdmin(registerData)).unwrap();
-        // Navigate to dashboard for admin
-        navigation.navigate('Dashboard');
-      } else {
-        // Use regular user registration
-        const result = await dispatch(registerUser({ ...registerData, role })).unwrap();
-        // Navigate to email verification screen
-        navigation.navigate('EmailVerification', { 
-          email: values.email,
-          fromRegistration: true 
-        });
-      }
+      // All users (admin and regular) go through same email verification flow
+      const result = await dispatch(registerUser({ ...registerData, role })).unwrap();
+      
+      // Navigate to email verification screen for all users
+      navigation.navigate('EmailVerification', { 
+        email: values.email,
+        fromRegistration: true,
+        userRole: role
+      });
     } catch (error) {
       // Error is handled by the slice
     }

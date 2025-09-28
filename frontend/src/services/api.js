@@ -53,9 +53,6 @@ export const authAPI = {
   register: (name, email, password, role = 'user') =>
     api.post('/auth/register', { name, email, password, role }),
   
-  registerAdmin: (name, email, password) =>
-    api.post('/auth/register-admin', { name, email, password }),
-  
   getCurrentUser: () =>
     api.get('/auth/me'),
   
