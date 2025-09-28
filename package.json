@@ -1,0 +1,20 @@
+{
+  "name": "mini-crm-app",
+  "version": "1.0.0",
+  "description": "Mini CRM Mobile Application - Dev Innovations Labs Assignment",
+  "main": "index.js",
+  "scripts": {
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start",
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install",
+    "install-all": "npm run install-backend && npm run install-frontend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "keywords": ["crm", "react-native", "nodejs", "mongodb"],
+  "author": "Dev Innovations Labs",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
