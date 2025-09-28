@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
-import * as Linking from 'expo-linking';
 import { store } from './src/store/store';
 import AppNavigator from './src/navigation/AppNavigator';
 import { getTheme } from './src/theme/theme';
@@ -36,28 +35,9 @@ const AppContent = () => {
     loadStoredTheme();
   }, [dispatch]);
 
-  const linking = {
-    prefixes: [Linking.createURL('/'), 'crm://'],
-    config: {
-      screens: {
-        Auth: {
-          screens: {
-            Login: {
-              path: '/login',
-              parse: {
-                verified: (verified) => verified === 'true',
-                email: (email) => email,
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer linking={linking}>
+      <NavigationContainer>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
         <AppNavigator />
       </NavigationContainer>
