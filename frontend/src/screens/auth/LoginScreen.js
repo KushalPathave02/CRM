@@ -31,15 +31,23 @@ const validationSchema = Yup.object().shape({
     .required('Password is required'),
 });
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { loading, error, requiresEmailVerification, pendingVerificationEmail } = useSelector((state) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
 
   useEffect(() => {
     // Clear any existing errors when component mounts
     dispatch(clearError());
-  }, [dispatch]);
+    
+    // Check if user came from email verification
+    const { verified, email } = route.params || {};
+    if (verified && email) {
+      setVerificationMessage(`✅ Email verified successfully! You can now log in with ${email}`);
+      // Auto-fill email field if possible
+    }
+  }, [dispatch, route.params]);
 
   const handleLogin = async (values) => {
     try {
@@ -74,6 +82,12 @@ const LoginScreen = ({ navigation }) => {
               <Paragraph style={styles.subtitle}>
                 Sign in to your CRM account
               </Paragraph>
+
+              {verificationMessage && (
+                <View style={styles.successMessage}>
+                  <Text style={styles.successText}>{verificationMessage}</Text>
+                </View>
+              )}
 
               <Formik
                 initialValues={{ email: '', password: '' }}
@@ -217,6 +231,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: -8,
     marginBottom: 8,
+  },
+  successMessage: {
+    backgroundColor: '#E8F5E8',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeft: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  successText: {
+    color: '#2E7D32',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

@@ -319,10 +319,131 @@ router.get('/verify-email/:token', async (req, res) => {
       // Don't fail verification if welcome email fails
     }
 
-    res.json({
-      success: true,
-      message: 'Email verified successfully! You can now log in to your account.'
-    });
+    // Return HTML page with auto-redirect to mobile app
+    const successHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verified Successfully</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .container {
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 400px;
+                width: 100%;
+            }
+            .success-icon {
+                font-size: 64px;
+                margin-bottom: 20px;
+            }
+            h1 {
+                color: #2d3748;
+                margin-bottom: 16px;
+                font-size: 24px;
+            }
+            p {
+                color: #4a5568;
+                margin-bottom: 24px;
+                line-height: 1.6;
+            }
+            .redirect-info {
+                background: #f7fafc;
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                border-left: 4px solid #48bb78;
+            }
+            .countdown {
+                font-weight: bold;
+                color: #2b6cb0;
+            }
+            .manual-link {
+                display: inline-block;
+                background: #4299e1;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 8px;
+                margin-top: 16px;
+                transition: background 0.3s;
+            }
+            .manual-link:hover {
+                background: #3182ce;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="success-icon">✅</div>
+            <h1>Email Verified Successfully!</h1>
+            <p>Your ${user.role === 'admin' ? 'admin' : 'user'} account has been verified. You can now log in to your CRM account.</p>
+            
+            <div class="redirect-info">
+                <p>Redirecting to login in <span class="countdown" id="countdown">5</span> seconds...</p>
+            </div>
+            
+            <p><strong>Account Details:</strong><br>
+            Email: ${user.email}<br>
+            Role: ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+            
+            <a href="#" class="manual-link" onclick="redirectToApp()">Login Now</a>
+        </div>
+
+        <script>
+            let countdown = 5;
+            const countdownElement = document.getElementById('countdown');
+            
+            const timer = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    redirectToApp();
+                }
+            }, 1000);
+            
+            function redirectToApp() {
+                // Try to redirect to mobile app first
+                const appScheme = 'crm://login?verified=true&email=${encodeURIComponent(user.email)}';
+                
+                // For mobile apps
+                window.location.href = appScheme;
+                
+                // Fallback: Show instructions after 2 seconds
+                setTimeout(() => {
+                    document.querySelector('.container').innerHTML = \`
+                        <div class="success-icon">📱</div>
+                        <h1>Return to Your App</h1>
+                        <p>Please return to your CRM mobile app and log in with:</p>
+                        <div class="redirect-info">
+                            <p><strong>Email:</strong> ${user.email}<br>
+                            <strong>Status:</strong> Verified ✅</p>
+                        </div>
+                        <p>Your account is now ready to use!</p>
+                    \`;
+                }, 2000);
+            }
+        </script>
+    </body>
+    </html>`;
+    
+    res.send(successHtml);
   } catch (error) {
     console.error('Email verification error:', error);
     res.status(500).json({
