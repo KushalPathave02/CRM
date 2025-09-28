@@ -62,9 +62,12 @@ const RegisterScreen = ({ navigation }) => {
         navigation.navigate('Dashboard');
       } else {
         // Use regular user registration
-        await dispatch(registerUser({ ...registerData, role })).unwrap();
+        const result = await dispatch(registerUser({ ...registerData, role })).unwrap();
         // Navigate to email verification screen
-        navigation.navigate('EmailVerification', { email: values.email });
+        navigation.navigate('EmailVerification', { 
+          email: values.email,
+          fromRegistration: true 
+        });
       }
     } catch (error) {
       // Error is handled by the slice

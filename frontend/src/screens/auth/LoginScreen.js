@@ -33,7 +33,7 @@ const validationSchema = Yup.object().shape({
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error, requiresEmailVerification, pendingVerificationEmail } = useSelector((state) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -44,9 +44,16 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = async (values) => {
     try {
       await dispatch(loginUser(values)).unwrap();
-      // Navigation will be handled automatically by AppNavigator
+      // Navigation will be handled by the navigation component
     } catch (error) {
-      // Error is handled by the slice
+      // Check if user needs email verification
+      if (error.requiresEmailVerification) {
+        navigation.navigate('EmailVerification', { 
+          email: error.email || values.email,
+          fromLogin: true 
+        });
+      }
+      // Other errors are handled by the slice
     }
   };
 

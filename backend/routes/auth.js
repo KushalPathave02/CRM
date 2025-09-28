@@ -77,24 +77,11 @@ router.post('/register', [
         html: getEmailVerificationTemplate(user.name, verificationUrl)
       });
 
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully. Please check your email to verify your account.',
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          isEmailVerified: user.isEmailVerified
-        }
-      });
-    } catch (error) {
-      console.error('Email sending error:', error);
+      console.log(`Verification email sent to ${user.email}`);
       
-      // If email fails, still allow registration but inform user
       res.status(201).json({
         success: true,
-        message: 'User registered successfully, but email could not be sent. Please contact support to verify your account.',
+        message: 'User registered successfully. Please check your email to verify your account before logging in.',
         user: {
           id: user._id,
           name: user.name,
@@ -102,7 +89,18 @@ router.post('/register', [
           role: user.role,
           isEmailVerified: user.isEmailVerified
         },
-        emailError: true
+        requiresEmailVerification: true
+      });
+    } catch (error) {
+      console.error('Email sending error:', error);
+      
+      // Delete user if email fails to send
+      await User.findByIdAndDelete(user._id);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Registration failed. Could not send verification email. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Email service error'
       });
     }
   } catch (error) {
@@ -160,7 +158,9 @@ router.post('/login', [
     if (!user.isEmailVerified) {
       return res.status(401).json({
         success: false,
-        message: 'Please verify your email address before logging in. Check your email for verification link.'
+        message: 'Please verify your email address before logging in. Check your email for verification link.',
+        requiresEmailVerification: true,
+        email: user.email
       });
     }
 

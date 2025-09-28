@@ -15,9 +15,11 @@ export const loginUser = createAsyncThunk(
       
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Login failed'
-      );
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Login failed',
+        requiresEmailVerification: error.response?.data?.requiresEmailVerification || false,
+        email: error.response?.data?.email || null
+      });
     }
   }
 );
@@ -30,11 +32,15 @@ export const registerUser = createAsyncThunk(
       
       // Don't store token for unverified users
       // User needs to verify email first
-      return response.data;
+      return {
+        ...response.data,
+        userEmail: email // Store email for verification screen
+      };
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Registration failed'
-      );
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Registration failed',
+        error: error.response?.data?.error || null
+      });
     }
   }
 );
@@ -131,6 +137,8 @@ const initialState = {
   loading: false,
   error: null,
   isInitialized: false,
+  pendingVerificationEmail: null,
+  requiresEmailVerification: false,
 };
 
 const authSlice = createSlice({
@@ -163,7 +171,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = action.payload;
+        state.error = action.payload.message;
+        state.requiresEmailVerification = action.payload.requiresEmailVerification;
+        state.pendingVerificationEmail = action.payload.email;
       })
       // Register
       .addCase(registerUser.pending, (state) => {
@@ -176,13 +186,17 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.error = null;
+        state.pendingVerificationEmail = action.payload.userEmail;
+        state.requiresEmailVerification = action.payload.requiresEmailVerification || false;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = action.payload;
+        state.error = action.payload.message;
+        state.pendingVerificationEmail = null;
+        state.requiresEmailVerification = false;
       })
       
       // Register Admin

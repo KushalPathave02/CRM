@@ -20,12 +20,24 @@ import { useTheme } from 'react-native-paper';
 import { authAPI } from '../../services/api';
 
 const EmailVerificationScreen = ({ route, navigation }) => {
-  const { email } = route.params || {};
+  const { email, fromLogin, fromRegistration } = route.params || {};
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [resendEmail, setResendEmail] = useState(email || '');
+  
+  const getTitle = () => {
+    if (fromLogin) return 'Email Verification Required';
+    if (fromRegistration) return 'Check Your Email';
+    return 'Email Verification';
+  };
+  
+  const getSubtitle = () => {
+    if (fromLogin) return 'Your email address needs to be verified before you can log in.';
+    if (fromRegistration) return 'We\'ve sent a verification link to your email address.';
+    return 'Please verify your email address to continue.';
+  };
 
   const handleResendVerification = async () => {
     if (!resendEmail.trim()) {
@@ -63,10 +75,10 @@ const EmailVerificationScreen = ({ route, navigation }) => {
               <Text style={styles.emailIcon}>📧</Text>
             </View>
             
-            <Title style={styles.title}>Verify Your Email</Title>
+            <Title style={styles.title}>{getTitle()}</Title>
             
             <Paragraph style={styles.description}>
-              We've sent a verification link to your email address. Please check your email and click the link to verify your account.
+              {getSubtitle()}
             </Paragraph>
 
             {email && (
